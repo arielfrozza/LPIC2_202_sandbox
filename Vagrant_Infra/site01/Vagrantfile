@@ -1,0 +1,99 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+        config.vm.define "gw01" do |xenial|
+                xenial.vm.box = "ubuntu/xenial64"
+		xenial.vm.hostname = "gw01.site01.frozza.com"
+                xenial.vm.network "private_network", ip:"192.168.1.11"
+                xenial.vm.network "private_network", ip:"10.0.0.11"
+		xenial.vm.network "private_network", ip:"10.0.0.22"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22001
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202/site01"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
+			v.customize ["modifyvm", :id, "--nicpromisc4", "allow-all"]
+			v.name = "gw01"
+                        v.memory = 1024
+                        v.cpus = 2
+                 end
+        end
+#	config.vm.provision :shell, :inline => "echo '192.168.1.111 router1.frozza.com router1' >> /etc/hosts"
+
+        config.vm.define "mail01" do |xenial|
+                xenial.vm.box = "centos/7"
+		xenial.vm.hostname = "mail01.site01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.6"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22006
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202/site01"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "mail01"
+                        v.memory = 1024
+                        v.cpus = 2
+                 end
+        end
+
+        config.vm.define "web01" do |xenial|
+                xenial.vm.box = "centos/7"
+		xenial.vm.hostname = "web01.site01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.5"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22005
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202/site01"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "web01"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+
+        config.vm.define "auth01" do |xenial|
+                xenial.vm.box = "ubuntu/xenial64"
+		xenial.vm.hostname = "auth01.site01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.4"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22104
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202/site01"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "auth01"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+
+        config.vm.define "ansible" do |xenial|
+                xenial.vm.box = "centos/7"
+		xenial.vm.hostname = "ansible.site01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.7"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22007
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202/site01"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "ansible"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+
+        config.vm.define "user01" do |xenial|
+                xenial.vm.box = "ubuntu/xenial64"
+		xenial.vm.hostname = "user01.site01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.10"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22010
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202/site01"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "user01"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+end
