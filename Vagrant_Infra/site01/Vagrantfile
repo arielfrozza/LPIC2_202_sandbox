@@ -2,10 +2,26 @@
 # vi: set ft=ruby :
 
 Vagrant.configure(2) do |config|
+        config.vm.define "gw00" do |xenial|
+                xenial.vm.box = "ubuntu/xenial64"
+		xenial.vm.hostname = "gw00.provider.com"
+                xenial.vm.network "private_network", ip:"192.168.11.11"
+                xenial.vm.network "private_network", ip:"192.168.22.22"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22222
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202/site01"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
+			v.name = "gw00"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
         config.vm.define "gw01" do |xenial|
                 xenial.vm.box = "ubuntu/xenial64"
 		xenial.vm.hostname = "gw01.site01.frozza.com"
-                xenial.vm.network "private_network", ip:"192.168.1.11"
+                xenial.vm.network "private_network", ip:"192.168.11.10"
                 xenial.vm.network "private_network", ip:"10.0.0.11"
 		xenial.vm.network "private_network", ip:"10.0.0.22"
 		xenial.vm.network :forwarded_port, guest: 22, host: 22001
