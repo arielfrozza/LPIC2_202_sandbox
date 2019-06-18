@@ -1,0 +1,181 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+        config.vm.define "gw00" do |xenial|
+                xenial.vm.box = "ubuntu/xenial64"
+		xenial.vm.hostname = "gw00.provider.com"
+                xenial.vm.network "private_network", ip:"192.168.11.10"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22222
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "gw00"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+	         config.vm.provision :shell, :inline => "sudo sed -i 's/^PasswordAuthentication\ no/PasswordAuthentication\ yes/I' /etc/ssh/sshd_config"
+		 config.vm.provision :shell, :inline => "sudo systemctl restart ssh"
+		 config.vm.provision :shell, :inline => "sudo sysctl -w net.ipv4.ip_forward=1"
+		 config.vm.provision :shell, :inline => "sudo echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf"
+		 config.vm.provision :shell, :inline => "sudo apt-get update"
+		 config.vm.provision :shell, :inline => "sudo apt-get -y install iptables-persistent"
+		 config.vm.provision :shell, :inline => "sudo iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE"
+		 config.vm.provision :shell, :inline => "sudo iptables-save > /etc/iptables/rules.v4"
+        end
+	# modificar sshd_config para permitir login por senha
+	# Incluir no sysctl net.ipv4.ip_forward=1 e net.ipv6.conf.all.forwarding=1
+	# 
+        config.vm.define "gw01" do |xenial|
+                xenial.vm.box = "ubuntu/xenial64"
+		xenial.vm.hostname = "gw01.frozza.com"
+                xenial.vm.network "private_network", ip:"192.168.11.11"
+                xenial.vm.network "private_network", ip:"10.0.0.11"
+		xenial.vm.network "private_network", ip:"10.0.3.11"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22001
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
+			v.customize ["modifyvm", :id, "--nicpromisc4", "allow-all"]
+			v.name = "gw01"
+                        v.memory = 1024
+                        v.cpus = 2
+                 end
+	         config.vm.provision :shell, :inline => "sudo sed -i 's/^PasswordAuthentication\ no/PasswordAuthentication\ yes/I' /etc/ssh/sshd_config"
+		 config.vm.provision :shell, :inline => "sudo systemctl restart ssh"
+		 config.vm.provision :shell, :inline => "sudo sysctl -w net.ipv4.ip_forward=1"
+		 config.vm.provision :shell, :inline => "sudo echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf"
+		 config.vm.provision :shell, :inline => "sudo apt-get update"
+		 #config.vm.provision :shell, :inline => "sudo apt-get -y install iptables-persistent"
+		 #config.vm.provision :shell, :inline => "sudo iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE"
+		 #config.vm.provision :shell, :inline => "sudo iptables-save > /etc/iptables/rules.v4"
+        end
+	# desabilitar o adapter 1 (NAT)
+	# modificar sshd_config para permitir login por senha
+	# adicionar gateway default
+	# adicionar rota para gw02
+#	config.vm.provision :shell, :inline => "echo '192.168.1.111 router1.frozza.com router1' >> /etc/hosts"
+
+        config.vm.define "mail01" do |xenial|
+                xenial.vm.box = "centos/7"
+		xenial.vm.hostname = "mail01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.12"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22106
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "mail01"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+	         config.vm.provision :shell, :inline => "sudo sed -i 's/^PasswordAuthentication\ no/PasswordAuthentication\ yes/I' /etc/ssh/sshd_config"
+		 config.vm.provision :shell, :inline => "sudo systemctl restart ssh"
+        end
+
+        config.vm.define "file01" do |xenial|
+                xenial.vm.box = "centos/7"
+		xenial.vm.hostname = "file01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.13"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22005
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "file01"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+
+        config.vm.define "web01" do |xenial|
+                xenial.vm.box = "centos/7"
+		xenial.vm.hostname = "web01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.14"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22005
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "web01"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+
+        config.vm.define "auth01" do |xenial|
+                xenial.vm.box = "ubuntu/xenial64"
+		xenial.vm.hostname = "auth01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.15"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22104
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "auth01"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+
+        config.vm.define "auth02" do |xenial|
+                xenial.vm.box = "ubuntu/xenial64"
+		xenial.vm.hostname = "auth02.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.0.16"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22114
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "auth02"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+
+        #config.vm.define "ansible" do |xenial|
+                #xenial.vm.box = "centos/7"
+		#xenial.vm.hostname = "ansible.frozza.com"
+		#xenial.vm.network "private_network", ip:"10.0.0.7"
+		#xenial.vm.network :forwarded_port, guest: 22, host: 22007
+                #xenial.vm.provider :virtualbox do |v|
+			#v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			#v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			#v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			#v.name = "ansible"
+                        #v.memory = 768
+                        #v.cpus = 2
+                 #end
+        #end
+
+        config.vm.define "user01" do |xenial|
+                xenial.vm.box = "centos/7"
+		xenial.vm.hostname = "user01.frozza.com"
+		xenial.vm.network "private_network", ip:"10.0.3.12"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22010
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+			v.name = "user01"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+
+        config.vm.define "user02" do |xenial|
+                xenial.vm.box = "ubuntu/xenial64"
+		xenial.vm.hostname = "user02.frozza.com"
+		xenial.vm.network :forwarded_port, guest: 22, host: 22010
+                xenial.vm.provider :virtualbox do |v|
+			v.customize ["modifyvm", :id, "--cpuexecutioncap", "90"]
+			v.customize ["modifyvm", :id, "--groups", "/LPIC_202"]
+			v.name = "user02"
+                        v.memory = 768
+                        v.cpus = 2
+                 end
+        end
+end
